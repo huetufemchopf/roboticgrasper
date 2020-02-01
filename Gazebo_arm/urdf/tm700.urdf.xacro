@@ -1,0 +1,594 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- transmission -->
+  <xacro:include filename="$(find tm_description)/urdf/tm.transmission.xacro" />
+
+  <!-- Mass parameters -->
+  <property name="pi" value="3.14159265" />
+
+  <property name="base_mass" value="1.0" />
+  <property name="shoulder_mass" value="4.5" />
+  <property name="arm_1_mass" value="10.5" />
+  <property name="arm_2_mass" value="2.1" />
+  <property name="wrist_1_mass" value="1.45" />
+  <property name="wrist_2_mass" value="1.45" />
+  <property name="wrist_3_mass" value="0.4" />
+
+  <!-- Kinematic model -->
+  <!-- Properties from tmcontrol.conf -->
+  <!--
+    DH for TM700:
+    a = [0.00000, 0.329, 0.3115,  0.00000,  0.00000,  0.0000]
+    d = [0.1451,  0.00000,  0.00000,  -0.1222,  0.106,  0.1144]
+    alpha = [ -1.570796327, 0, 0, 1.570796327, 1.570796327, 0 ]
+    q_home_offset = [0, -1.570796327, 0, 1.570796327, 0, 0]
+    joint_direction = [-1, -1, 1, -1, 1, 1]
+    mass = [4.5, 10.5, 2.1, 1.45, 1.45, 0.4]
+    center_of_mass = [ [0, -0.02561, 0.00193], [0.2125, 0, 0.11336], [0.11993, 0.0, 0.0265], [0, -0.0018, 0.01634], [0, 0.0018,0.01634], [0, 0, -0.001159] ](tm700)
+  -->
+  <property name="tm_d1" value="0.1451" />
+  <property name="tm_a2" value="0.3290" />
+  <property name="tm_a3" value="0.3115" />
+  <property name="tm_d4" value="0.1222" />
+  <property name="tm_d5" value="0.1060" />
+  <property name="tm_d6" value="0.1144" />
+
+  <!-- offsets for shoulder/elbow joints -->
+  <property name="shoulder_offset" value="-0.146" />  <!-- measured from model -->
+  <property name="elbow_offset" value="0.1298" /> <!-- measured from model -->       
+  <property name="wrist_offset" value="${-tm_d4 - elbow_offset - shoulder_offset}" />
+  
+  <!-- link lengths used in model -->
+  <property name="shoulder_height" value="${tm_d1}" />
+  <property name="arm_1_length" value="${tm_a2}" />
+  <property name="arm_2_length" value="${tm_a3}" />
+  <property name="wrist_1_length" value="tm_d5}" />
+  <property name="wrist_2_length" value="${tm_d5}" />
+  <property name="wrist_3_length" value="0.0565" />
+  <property name="ee_length" value="${tm_d6 - wrist_3_length}" />
+
+  <xacro:macro name="cylinder_inertial" params="radius length mass *origin">
+    <inertial>
+      <mass value="${mass}" />
+      <insert_block name="origin" />
+      <inertia ixx="${0.0833333 * mass * (3 * radius * radius + length * length)}" ixy="0.0" ixz="0.0"
+        iyy="${0.0833333 * mass * (3 * radius * radius + length * length)}" iyz="0.0"
+        izz="${0.5 * mass * radius * radius}" />
+    </inertial>
+  </xacro:macro>
+
+  <xacro:macro name="tm700_robot" params="prefix joint_limited">
+
+    <!-- transmission prefix -->
+    <xacro:tm_arm_transmission prefix="${prefix}" />
+
+    <link name="${prefix}base_link" >
+      <visual>
+        <geometry>
+	  <mesh filename="package://tm_description/meshes/tm700/visual/Base.STL" />
+        </geometry>
+        <material name="Grey">
+          <color rgba="0.5 0.5 0.5 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <geometry>
+	  <mesh filename="package://tm_description/meshes/tm700/collision/base.STL" />
+        </geometry>
+      </collision>
+      
+      <xacro:cylinder_inertial radius="0.06" length="0.05" mass="${base_mass}">
+        <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
+      </xacro:cylinder_inertial>
+      
+    </link>
+    
+    <link name="${prefix}shoulder_1_link">
+      <visual>
+        <geometry>
+	  <mesh filename="package://tm_description/meshes/tm700/visual/Shoulder1.STL" />
+        </geometry>
+        <material name="DarkOlive">
+          <color rgba="0.3 0.3 0.25 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <geometry>
+	  <mesh filename="package://tm_description/meshes/tm700/collision/shoulder_1.STL" />
+        </geometry>
+      </collision>
+      
+      <xacro:cylinder_inertial radius="0.06" length="0.15" mass="${shoulder_mass}">
+        <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
+      </xacro:cylinder_inertial>
+      
+    </link>
+    
+    <joint name="${prefix}shoulder_1_joint" type="revolute">
+      <parent link="${prefix}base_link" />
+      <child link = "${prefix}shoulder_1_link" />
+      <origin xyz="0.0 0.0 ${shoulder_height}" rpy="${-0.5 * pi} 0.0 0.0" />
+      <axis xyz="0 -1 0" />
+      <xacro:unless value="${joint_limited}">
+        <limit lower="${-2.0 * pi}" upper="${2.0 * pi}" effort="150.0" velocity="3.15"/>
+      </xacro:unless>
+      <xacro:if value="${joint_limited}">
+        <limit lower="${-pi}" upper="${pi}" effort="150.0" velocity="3.15"/>
+      </xacro:if>
+      <dynamics damping="0.0" friction="0.0"/>
+    </joint>
+    
+    <link name="${prefix}arm_1_link">
+      <visual>
+        <geometry>
+	  <mesh filename="package://tm_description/meshes/tm700/visual/Arm1.STL" />
+        </geometry>
+        <material name="DarkOlive">
+          <color rgba="0.3 0.3 0.25 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <geometry>
+	  <mesh filename="package://tm_description/meshes/tm700/collision/arm_1.STL" />
+        </geometry>
+      </collision>
+      
+      <xacro:cylinder_inertial radius="0.06" length="0.56" mass="${arm_1_mass}">
+        <origin xyz="0.0 0.0 0.28" rpy="0 0 0" />
+      </xacro:cylinder_inertial>
+      
+    </link>
+    
+    <joint name="${prefix}shoulder_2_joint" type="revolute">
+      <parent link="${prefix}shoulder_1_link" />
+      <child link = "${prefix}arm_1_link" />
+      <origin xyz="0.0 0.0 ${shoulder_offset}" rpy="0.0 0.0 ${-0.5 * pi}" />    
+      <axis xyz="0 0 1" />
+      <xacro:unless value="${joint_limited}">
+        <limit lower="${-1.5 * pi}" upper="${1.5 * pi}" effort="150.0" velocity="3.15"/>
+      </xacro:unless>
+      <xacro:if value="${joint_limited}">
+        <limit lower="${-pi}" upper="${pi}" effort="150.0" velocity="3.15"/>
+      </xacro:if>
+      <dynamics damping="0.0" friction="0.0"/>
+    </joint>
+    
+    <link name="${prefix}arm_2_link">
+      <visual>
+        <geometry>
+	  <mesh filename="package://tm_description/meshes/tm700/visual/Arm2.STL" />
+        </geometry>
+        <material name="DarkOlive">
+          <color rgba="0.3 0.3 0.25 1.0"/>
+        </material>
+      </visual>
+      
+      <collision>
+        <geometry>
+	  <mesh filename="package://tm_description/meshes/tm700/collision/arm_2.STL" />
+        </geometry>
+      </collision>
+      
+      <xacro:cylinder_inertial radius="0.06" length="0.5" mass="${arm_2_mass}">
+        <origin xyz="0.0 0.0 0.25" rpy="0 0 0" />
+      </xacro:cylinder_inertial>
+      
+    </link>
+    
+    <joint name="${prefix}elbow_1_joint" type="revolute">
+      <parent link="${prefix}arm_1_link" />
+      <child link = "${prefix}arm_2_link" />
+      <origin xyz="${arm_1_length} 0.0 ${elbow_offset}" rpy="0.0 0.0 0.0" />
+      <axis xyz="0 0 1" />
+      <xacro:unless value="${joint_limited}">
+        <limit lower="${-1.5 * pi}" upper="${1.5 * pi}" effort="150.0" velocity="3.15"/>
+      </xacro:unless>
+      <xacro:if value="${joint_limited}">
+        <limit lower="${-pi}" upper="${pi}" effort="150.0" velocity="3.15"/>
+      </xacro:if>
+      <dynamics damping="0.0" friction="0.0"/>
+    </joint>
+    
+    <link name="${prefix}wrist_1_link">
+      <visual>
+        <geometry>
+	  <mesh filename="package://tm_description/meshes/tm700/visual/Wrist1.STL" />
+        </geometry>
+        <material name="DarkOlive">
+          <color rgba="0.3 0.3 0.25 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <geometry>
+	  <mesh filename="package://tm_description/meshes/tm700/collision/wrist_1.STL" />
+        </geometry>
+      </collision>
+      
+      <xacro:cylinder_inertial radius="0.6" length="0.12" mass="${wrist_1_mass}">
+        <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
+      </xacro:cylinder_inertial>
+      
+    </link>
+    
+    <joint name="${prefix}wrist_1_joint" type="revolute">
+      <parent link="${prefix}arm_2_link" />
+      <child link = "${prefix}wrist_1_link" />
+      <origin xyz="${arm_2_length} 0.0 ${wrist_offset}" rpy="${0.5 * pi} 0.0 ${0.5 * pi}" />
+      <axis xyz="0 1 0" />
+      <xacro:unless value="${joint_limited}">
+        <limit lower="${-2.0 * pi}" upper="${2.0 * pi}" effort="28.0" velocity="3.2"/>
+      </xacro:unless>
+      <xacro:if value="${joint_limited}">
+        <limit lower="${-pi}" upper="${pi}" effort="28.0" velocity="3.2"/>
+      </xacro:if>
+      <dynamics damping="0.0" friction="0.0"/>
+    </joint>
+    
+    <link name="${prefix}wrist_2_link">
+      <visual>
+        <geometry>
+	  <mesh filename="package://tm_description/meshes/tm700/visual/Wrist2.STL" />
+        </geometry>
+        <material name="DarkOlive">
+          <color rgba="0.3 0.3 0.25 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <geometry>
+	  <mesh filename="package://tm_description/meshes/tm700/collision/wrist_2.STL" />
+        </geometry>
+      </collision>
+      
+      <xacro:cylinder_inertial radius="0.6" length="0.12" mass="${wrist_2_mass}">
+        <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
+      </xacro:cylinder_inertial>
+      
+    </link>
+    
+    <joint name="${prefix}wrist_2_joint" type="revolute">
+      <parent link="${prefix}wrist_1_link" />
+      <child link = "${prefix}wrist_2_link" />
+      <origin xyz="0.0 0.0 ${wrist_2_length}" rpy="${0.5 * pi} 0.0 0.0" />
+      <axis xyz="0 1 0" />
+      <xacro:unless value="${joint_limited}">
+        <limit lower="${-2.0 * pi}" upper="${2.0 * pi}" effort="28.0" velocity="3.2"/>
+      </xacro:unless>
+      <xacro:if value="${joint_limited}">
+        <limit lower="${-pi*5/6}" upper="${pi*5/6}" effort="28.0" velocity="3.2"/>
+      </xacro:if>
+      <dynamics damping="0.0" friction="0.0"/>
+    </joint>
+    
+    <link name="${prefix}wrist_3_link">
+      <visual>
+        <geometry>
+	  <mesh filename="package://tm_description/meshes/tm700/visual/Wrist3.STL" />
+        </geometry>
+	<origin xyz="0 0 0.015" rpy="0 0 0"/>
+        <material name="Grey">
+          <color rgba="0.5 0.5 0.5 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <geometry>
+	  <mesh filename="package://tm_description/meshes/tm700/collision/wrist_3.STL" />
+        </geometry>
+      </collision>
+      
+      <xacro:cylinder_inertial radius="0.6" length="0.12" mass="${wrist_3_mass}">
+        <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
+      </xacro:cylinder_inertial>
+      
+    </link>
+    
+    <joint name="${prefix}wrist_3_joint" type="revolute">
+      <parent link="${prefix}wrist_2_link" />
+      <child link = "${prefix}wrist_3_link" />
+      <origin xyz="0.0 0.0 ${wrist_3_length}" rpy="0.0 0.0 0.0" />
+      <axis xyz="0 0 1" />
+      <xacro:unless value="${joint_limited}">
+        <!-- Limited the wrist_3_joint to avoid crashing the gripper -->
+        <limit lower="${-1.0 * pi}" upper="${1.0 * pi}" effort="28.0" velocity="3.2"/>
+      </xacro:unless>
+      <xacro:if value="${joint_limited}">
+        <limit lower="${-pi}" upper="${pi}" effort="28.0" velocity="3.2"/>
+      </xacro:if>
+      <dynamics damping="0.0" friction="0.0"/>
+    </joint>
+    
+    <link name="${prefix}tip_link">
+      <collision>
+        <geometry>
+          <box size="0.05 0.05 0.05"/>
+        </geometry>
+        <origin xyz="0 0 0.025" rpy="0 0 0"/>
+      </collision>
+    </link>
+    
+    <joint name="${prefix}tip_fixed_joint" type="fixed">
+      <parent link="${prefix}wrist_3_link" />
+      <child link = "${prefix}tip_link" />
+      <origin xyz="0.0 0.0 ${ee_length}" rpy="0.0 0.0 0.0" />
+    </joint>
+    
+    <!-- add compressing 2-jaw gripper -->
+    
+    <property name="gripper_joint_x" value="0" />
+    <property name="gripper_joint_y" value="0" />
+    <property name="gripper_joint_z" value="0.15" />
+    
+    <property name="gripper_roll" value="0" />
+    <property name="gripper_pitch" value="${pi}" />
+    <property name="gripper_yaw" value="0" />
+    
+    <property name="finger_roll" value="0" />
+    <property name="finger_pitch" value="0" />
+    <property name="finger_yaw" value="${pi}" />
+    
+    <property name="finger_bias_x" value="0.0" />
+    <property name="finger_bias_y" value="0.0015" />
+    <property name="finger_bias_z" value="0.013" />
+    
+    <property name="finger_r_joint_x" value="${finger_bias_x-0.0105}" />
+    <property name="finger_r_joint_y" value="${finger_bias_y+0.0}" />
+    <property name="finger_r_joint_z" value="${finger_bias_z+0.0}" />
+    
+    <property name="finger_l_joint_x" value="${finger_bias_x+0.0105}" />
+    <property name="finger_l_joint_y" value="${finger_bias_y+0.0}" />
+    <property name="finger_l_joint_z" value="${finger_bias_z+0.0}" />
+    
+    <link name="${prefix}gripper_link">
+        <inertial>
+            <origin rpy="0 0 0" xyz="0.0311572802112565 -1.25977280754998E-05 0.0092307003092138"/>
+            <mass value="0.0795745052466434"/>
+            <inertia ixx="3.27413333929741E-05" ixy="3.7314060486416E-08" ixz="3.97669066588691E-06" iyy="4.47182985231326E-05" iyz="-9.49992756213297E-09" izz="5.02142570756738E-05"/>
+        </inertial>
+        <visual>
+            <origin rpy="${gripper_roll} ${gripper_pitch} ${gripper_yaw}" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="package://tm_description/meshes/toyo_gripper/Gripper.STL" scale="0.01 0.01 0.01"/>
+            </geometry>
+            <material name="">
+                <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1"/>
+            </material>
+        </visual>
+        <collision>
+            <origin rpy="${gripper_roll} ${gripper_pitch} ${gripper_yaw}" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="package://tm_description/meshes/toyo_gripper/Gripper.STL" scale="0.01 0.01 0.01"/>
+            </geometry>
+        </collision>
+    </link>
+    <joint name="${prefix}gripper_joint" type="fixed">
+        <origin rpy="0 0 0" xyz="${gripper_joint_x} ${gripper_joint_y} ${gripper_joint_z}"/>
+        <parent link="${prefix}wrist_3_link"/>
+        <child link="${prefix}gripper_link"/>
+        <axis xyz="-1 0 0"/>
+        <limit effort="1" lower="-1.57" upper="1.57" velocity="1"/>
+    </joint>
+    
+    <link name="${prefix}finger_r_link">
+        <inertial>
+            <origin rpy="0 0 0" xyz="0.0100191457715113 -0.00843835347348892 -0.00483280251641866"/>
+            <mass value="0.0121931459003602"/>
+            <inertia ixx="6.74016278931418E-07" ixy="-2.36459038775023E-07" ixz="3.1480125304693E-09" iyy="3.10966297287339E-06" iyz="1.19271018871704E-10" izz="2.77935600332309E-06"/>
+        </inertial>
+        <visual>
+            <origin rpy="${finger_roll} ${finger_pitch} ${finger_yaw}" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="package://tm_description/meshes/toyo_gripper/finger_r.STL" scale="0.01 0.01 0.01"/>
+            </geometry>
+            <material name="">
+                <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1"/>
+            </material>
+        </visual>
+        <collision>
+            <origin rpy="${finger_roll} ${finger_pitch} ${finger_yaw}" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="package://tm_description/meshes/toyo_gripper/finger_r.STL" scale="0.01 0.01 0.01"/>
+            </geometry>
+        </collision>
+    </link>
+<!--prismatic-->
+    <joint name="${prefix}finger_r_joint" type="prismatic">
+        <origin rpy="0 0 0" xyz="${finger_r_joint_x} ${finger_r_joint_y} ${finger_r_joint_z}"/>
+        <parent link="${prefix}gripper_link"/>
+        <child link="${prefix}finger_r_link"/>
+        <axis xyz="1 0 0"/>
+        <limit effort="1" lower="-1" upper="0" velocity="1"/>
+    </joint>
+    
+    <link name="${prefix}finger_l_link">
+        <inertial>
+            <origin rpy="0 0 0" xyz="0.0100191599590265 0.00643833435729511 -0.00483280251641866"/>
+            <mass value="0.0121931459003603"/>
+            <inertia ixx="6.74017180959932E-07" ixy="2.3646368440071E-07" ixz="3.14801230297432E-09" iyy="3.10966207084492E-06" iyz="-1.19277023229564E-10" izz="2.77935600332313E-06"/>
+        </inertial>
+        <visual>
+            <origin rpy="${finger_roll} ${finger_pitch} ${finger_yaw}" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="package://tm_description/meshes/toyo_gripper/finger_l.STL" scale="0.01 0.01 0.01"/>
+            </geometry>
+            <material name="">
+                <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1"/>
+            </material>
+        </visual>
+        <collision>
+            <origin rpy="${finger_roll} ${finger_pitch} ${finger_yaw}" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="package://tm_description/meshes/toyo_gripper/finger_l.STL" scale="0.01 0.01 0.01"/>
+            </geometry>
+        </collision>
+    </link>
+<!--prismatic-->
+    <joint name="${prefix}finger_l_joint" type="prismatic">
+        <origin rpy="0 0 0" xyz="${finger_l_joint_x} ${finger_l_joint_y} ${finger_l_joint_z}"/>
+        <parent link="${prefix}gripper_link"/>
+        <child link="${prefix}finger_l_link"/>
+        <axis xyz="1 0 0"/>
+        <limit effort="1" lower="0" upper="1" velocity="1"/>
+    </joint>
+
+    
+    
+    <!-- add crabbing 2-jaw gripper-->
+    
+<!--    <property name="gripper_length" value="0.1" />-->
+<!--    <property name="gripper_height" value="0.1" />-->
+<!--    <property name="gripper_right" value="0.05" />-->
+<!--    -->
+<!--    <link name="${prefix}finger_140_gripper_link">-->
+<!--      <visual>-->
+<!--        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>-->
+<!--        <geometry>-->
+<!--          <mesh filename="package://tm_description/meshes/gripper/2_finger_140_gripper.STL" scale="0.001 0.001 0.001"/>-->
+<!--        </geometry>-->
+<!--        <material name="black">-->
+<!--          <color rgba="0.05 0.05 0.05 1"/>-->
+<!--        </material>-->
+<!--      </visual>-->
+<!--      <collision>-->
+<!--        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>-->
+<!--        <geometry>-->
+<!--          <mesh filename="package://tm_description/meshes/gripper/2_finger_140_gripper.STL" scale="0.001 0.001 0.001"/>-->
+<!--        </geometry>-->
+<!--      </collision>-->
+<!--    </link>-->
+<!--    -->
+<!--    <joint name="${prefix}finger_140_gripper_joint" type="fixed">-->
+<!--      <parent link="${prefix}tip_link"/>-->
+<!--      <child link="${prefix}finger_140_gripper_link"/>-->
+<!--      <origin xyz="${gripper_right} ${gripper_height} ${gripper_length}" rpy="1.5707 1.5707 0.0"/>-->
+<!--    </joint>-->
+    
+    <!-- ROS base to TM 'base_link' Coordinates transform -->
+    <link name="${prefix}base"/>
+    <joint name="${prefix}base-base_link" type="fixed">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <parent link="${prefix}base"/>
+      <child link="${prefix}base_link"/>
+    </joint>
+    
+    <property name="plate_joint_x" value="-0.2" />
+    <property name="plate_joint_y" value="-0.4" />
+    <property name="plate_joint_z" value="0" />
+
+    <property name="table_plate_joint_x" value="0" />
+    <property name="table_plate_joint_y" value="0.8" />
+    <property name="table_plate_joint_z" value="-0.1" />
+
+    <property name="support_joint_x" value="0" />
+    <property name="support_joint_y" value="0.7" />
+    <property name="support_joint_z" value="0.82" />
+    
+<!-- Add plate link to avoid crashing into plate -->
+    <link name="${prefix}plate_link">
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0" />
+            <mass value="0.640128902693298" />
+            <inertia ixx="0.0212697824374231" ixy="-1.84819421839641E-07" ixz="0.00177278831625861" iyy="0.0200161122874848" iyz="1.82514218153984E-07" izz="0.00538401325307411"/>
+        </inertial>
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0" />
+            <geometry>
+<!--                <mesh filename="package://tm_description/meshes/plate.STL" />-->
+                <box size="1.0 1.0 0.0001" />
+            </geometry>
+            <material name="">
+                <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+            </material>
+        </visual>
+        <collision>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+<!--                <mesh filename="package://tm_description/meshes/plate.STL"/>-->
+                <box size="1.0 1.0 0.0001" />
+            </geometry>
+        </collision>
+    </link>
+    
+    <joint name="${prefix}plate_joint" type="fixed">
+        <origin rpy="0 0 0" xyz="${plate_joint_x} ${plate_joint_y} ${plate_joint_z}"/>
+        <parent link="${prefix}base"/>
+        <child link="${prefix}plate_link"/>
+        <axis xyz="0 0 0"/>
+    </joint>
+
+    <!-- Add plate link to avoid crashing into experiment table -->
+    <link name="${prefix}table_plate_link">
+        <inertial>
+            <origin rpy="0 0 0" xyz="0.0 0 0.0" />
+            <mass value="0.640128902693298" />
+            <inertia ixx="0.0212697824374231" ixy="-1.84819421839641E-07" ixz="0.00177278831625861" iyy="0.0200161122874848" iyz="1.82514218153984E-07" izz="0.00538401325307411"/>
+        </inertial>
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0" />
+            <geometry>
+<!--                <mesh filename="package://tm_description/meshes/plate.STL" />-->
+                <box size="1.0 1.0 0.0001" />
+            </geometry>
+            <material name="">
+                <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+            </material>
+        </visual>
+        <collision>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+<!--                <mesh filename="package://tm_description/meshes/plate.STL"/>-->
+                <box size="1.0 1.0 0.0001" />
+            </geometry>
+        </collision>
+    </link>
+    
+    <joint name="${prefix}table_plate_link" type="fixed">
+        <origin rpy="0 0 0" xyz="${table_plate_joint_x} ${table_plate_joint_y} ${table_plate_joint_z}"/>
+        <parent link="${prefix}base"/>
+        <child link="${prefix}table_plate_link"/>
+        <axis xyz="0 0 0"/>
+    </joint>
+    
+    <!-- Add support link to avoid crashing into Aluminum Scaffold-->
+    <link name="${prefix}support_link">
+        <inertial>
+            <origin rpy="0 0 0" xyz="0.0 0 0.0" />
+            <mass value="0.640128902693298" />
+            <inertia ixx="0.0212697824374231" ixy="-1.84819421839641E-07" ixz="0.00177278831625861" iyy="0.0200161122874848" iyz="1.82514218153984E-07" izz="0.00538401325307411"/>
+        </inertial>
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0" />
+            <geometry>
+<!--                <mesh filename="package://tm_description/meshes/plate.STL" />-->
+                <box size="0.5 0.03 0.03" />
+            </geometry>
+            <material name="">
+                <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+            </material>
+        </visual>
+        <collision>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+<!--                <mesh filename="package://tm_description/meshes/plate.STL"/>-->
+                <box size="0.5 0.03 0.03" />
+            </geometry>
+        </collision>
+    </link>
+    
+    <joint name="${prefix}support_link" type="fixed">
+        <origin rpy="0 0 ${pi/2}" xyz="${support_joint_x} ${support_joint_y} ${support_joint_z}"/>
+        <parent link="${prefix}base"/>
+        <child link="${prefix}support_link"/>
+        <axis xyz="0 0 0"/>
+    </joint>
+    
+    <!-- Frame coincident with all-zeros TCP on TM controller -->
+    <link name="${prefix}tool0"/>
+    <joint name="${prefix}tip_link-tool0" type="fixed">
+      <parent link="${prefix}tip_link"/>
+      <child link="${prefix}tool0"/>
+      <origin xyz="1 0 0" rpy="0 0 0"/>
+    </joint>
+
+  </xacro:macro>
+
+</robot>

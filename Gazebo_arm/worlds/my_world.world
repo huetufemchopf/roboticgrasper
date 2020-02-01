@@ -1,0 +1,102 @@
+<?xml version="1.0" ?>
+<sdf version="1.4" >
+  <world name="default">
+
+<!--    Add A New Model -->
+<!--    <include>-->
+<!--      <uri>model://${MODEL_NAME}</uri>-->
+<!--      <name>${MODEL_DISPLAY_NAME}</name>-->
+<!--      <pose>${POSE: tx, ty, tz, rx, ry, rz}<pose>-->
+<!--    </include>-->
+
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+
+    <include>
+      <uri>model://sun</uri>
+    </include>
+
+    <include>
+      <uri>model://cafe_table</uri>
+      <name>cafe_table</name>
+      <pose>0 0 0 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://bowl</uri>
+      <name>bowl</name>
+      <pose>0.3 -0.25 0.775 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://beer</uri>
+      <name>beer</name>
+      <pose>0.3 0 0.775 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://wood_cube_5cm</uri>
+      <name>wood_cube_10cm</name>
+      <pose>0.3 0.25 0.775 0 0 0</pose>
+    </include>
+
+<!--    Add A New Sensor-->
+<!--    The architecture of the new sensor will be released soon...-->
+
+<!--    <model name="camera">-->
+<!--      <static>true</static>-->
+<!--      <pose>1.15 0 1.52 0 0.5 3.1415926</pose>-->
+<!--      <link name="link">-->
+<!--        <visual name="visual">-->
+<!--          <geometry>-->
+<!--            <box>-->
+<!--              <size>0.1 0.1 0.1</size>-->
+<!--            </box>-->
+<!--          </geometry>-->
+<!--        </visual>-->
+<!--        -->
+<!--        <sensor name="my_camera" type="camera">-->
+<!--          <camera>-->
+<!--<!--            <save enabled="true">-->-->
+<!--<!--              <path>/tmp/gazebo_camera_images</path>-->-->
+<!--<!--            </save>-->-->
+<!--            <image>-->
+<!--              <width>1920</width>-->
+<!--              <height>1080</height>-->
+<!--            </image>-->
+<!--            <clip>-->
+<!--              <near>0.1</near>-->
+<!--              <far>100</far>-->
+<!--            </clip>-->
+<!--          </camera>-->
+<!--	  <plugin name="camera_dump" filename="libcamera_dump.so"/>-->
+<!--          <always_on>1</always_on>-->
+<!--          <update_rate>30</update_rate>-->
+<!--        </sensor>-->
+<!--      </link>-->
+<!--    </model>-->
+
+
+<!--    Logical Camera -->
+<!--    <model name="post">-->
+<!--      <pose>0 0 1.275 0 0.7 0</pose>-->
+<!--      <static>true</static>-->
+<!--      <link name="link">-->
+<!--        <sensor name="logical_camera" type="logical_camera">-->
+<!--          <logical_camera>-->
+<!--            <near>0.55</near>-->
+<!--            <far>2.5</far>-->
+<!--            <horizontal_fov>1.05</horizontal_fov>-->
+<!--            <aspect_ratio>1.8</aspect_ratio>-->
+<!--          </logical_camera>-->
+<!--     -->
+<!--          <visualize>true</visualize>-->
+<!--          <always_on>true</always_on>-->
+<!--          <update_rate>10</update_rate>-->
+<!--        </sensor>-->
+<!--      </link>-->
+<!--    </model>-->
+
+  </world>
+</sdf>
