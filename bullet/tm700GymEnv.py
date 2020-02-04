@@ -1,3 +1,5 @@
+# Code base from pybullet examples https://github.com/bulletphysics/bullet3/tree/master/examples/pybullet/gym/pybullet_envs
+
 import os, inspect
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 print("current_dir=" + currentdir)
@@ -312,6 +314,11 @@ if __name__ == '__main__':
 # datapath = pybullet_data.getDataPath()
   p.connect(p.GUI, options="--opencl2")
   #p.setAdditionalSearchPath(datapath)
-  test =KukaGymEnv()
+  test =tm700GymEnv2()
+  for i in range(10000):
+    test.step2([0.55, 0.2, 0.05,0,0])
+    p.stepSimulation()
+    # tm700test.print_joint_state()
+    time.sleep(1. / 240.0)
 
   time.sleep(50)

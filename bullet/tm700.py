@@ -188,7 +188,7 @@ class tm700:
       p.setJointMotorControl2(self.tm700Uid,
                           8,
                           p.POSITION_CONTROL,
-                          targetPosition=-1*fingerAngle/4.,
+                          targetPosition=-fingerAngle/4.,
                           force=self.fingerTipForce)
 
       p.setJointMotorControl2(self.tm700Uid,

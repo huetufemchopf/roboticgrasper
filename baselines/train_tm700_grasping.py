@@ -2,19 +2,20 @@
 import os, inspect
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(os.path.dirname(currentdir))
+print(parentdir)
+
 os.sys.path.insert(0, parentdir)
 
 import gym
-from pybullet_envs.bullet.tm700_diverse_object_gym_env import tm700DiverseObjectEnv
-from pybullet_envs.bullet.tm700GymEnv_TEST import tm700GymEnv2
-from pybullet_envs.bullet.tm700CamGymEnv import tm700CamGymEnv
+from bullet.tm700_diverse_object_gym_env import tm700DiverseObjectEnv
+from bullet.tm700GymEnv import tm700GymEnv2
+from bullet.tm700CamGymEnv import tm700CamGymEnv
 
 from pybullet_envs.bullet.kukaGymEnv import KukaGymEnv
-from stable_baselines import deepq
 from stable_baselines import DQN, PPO2, DDPG, HER
 from stable_baselines.her import GoalSelectionStrategy, HERGoalEnvWrapper
 import datetime
-# from stable_baselines.deepq.policies import MlpPolicy
+# from stable_baselines_test.deepq.policies import MlpPolicy
 from stable_baselines.ddpg.policies import DDPGPolicy,MlpPolicy
 import time
 
@@ -34,7 +35,7 @@ def callback(lcl, glb):
 def train_cam():
     param_noise = None
 
-    env1 = tm700CamGymEnv(renders=Trueggg, isDiscrete=False)
+    env1 = tm700CamGymEnv(renders=True, isDiscrete=False)
     model = DDPG(MlpPolicy, env1, verbose=1, param_noise=param_noise, random_exploration=0.1,
                  tensorboard_log="./tensorboard_ddpg_tm700/")
     # model = DQN(MlpPolicy, env1, verbose=1, exploration_fraction=0.3)
@@ -55,7 +56,7 @@ def train_cam():
 def train_base():
   param_noise = None
 
-  env1 = tm700GymEnv2(renders=False , isDiscrete=False)
+  env1 = tm700GymEnv2(renders=True , isDiscrete=False)
   model = DDPG(MlpPolicy, env1, verbose=1, param_noise=param_noise, random_exploration=0.1, tensorboard_log="./tensorboard_ddpg_tm700/")
   # model = DQN(MlpPolicy, env1, verbose=1, exploration_fraction=0.3)
 

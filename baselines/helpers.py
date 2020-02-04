@@ -6,18 +6,18 @@ parentdir = os.path.dirname(os.path.dirname(currentdir))
 os.sys.path.insert(0, parentdir)
 import parser
 import gym
-from pybullet_envs.bullet.tm700_diverse_object_gym_env import tm700DiverseObjectEnv
-from pybullet_envs.bullet.tm700GymEnv_TEST import tm700GymEnv2
+from bullet.tm700_diverse_object_gym_env import tm700DiverseObjectEnv
+from bullet.tm700GymEnv import tm700GymEnv2
 from pybullet_envs.bullet.kukaGymEnv import KukaGymEnv
 from stable_baselines import deepq
 from stable_baselines import DQN, PPO2, DDPG, HER
 from stable_baselines.her import GoalSelectionStrategy, HERGoalEnvWrapper
 import datetime
-# from stable_baselines.deepq.policies import MlpPolicy
+# from stable_baselines_test.deepq.policies import MlpPolicy
 from stable_baselines.ddpg.policies import DDPGPolicy,MlpPolicy
 import time
 from stable_baselines.common.vec_env import DummyVecEnv
-# from stable_baselines.common.policies import MlpPolicy
+# from stable_baselines_test.common.policies import MlpPolicy
 import numpy as np
 from stable_baselines.common.vec_env import VecVideoRecorder
 
@@ -78,6 +78,12 @@ def record_video(env_id, model, video_length=500, prefix='', video_folder='video
 
   # Close the video recorder
   eval_env.close()
+
+def savemodel(model, MODEL, ENVIRONMENT, DATE):
+
+    model.save("trainedmodel_%s_%s_%s.pkl" % MODEL, ENVIRONMENT, DATE)
+
+    pass
 
 if __name__ == '__main__':
 

@@ -6,7 +6,7 @@ def arg_parse():
     parser = argparse.ArgumentParser(description='Short Project Grasping arm with Reinforcement Learning')
 
     # Datasets parameters
-    parser.add_argument('--model_dir', type=str, default='./log',
+    parser.add_argument('--model_dir', type=str, default='./roboticgrasper/log',
                         help="place where it saves model")
 
 

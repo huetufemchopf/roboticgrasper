@@ -3,17 +3,16 @@ currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfram
 parentdir = os.path.dirname(os.path.dirname(currentdir))
 os.sys.path.insert(0, parentdir)
 import gym
-from pybullet_envs.bullet.tm700GymEnv_TEST import tm700GymEnv2
+from bullet.tm700GymEnv import tm700GymEnv2
+from bullet.tm700_diverse_object_gym_env import tm700DiverseObjectEnv
 from stable_baselines import DQN, PPO2, DDPG
-from pybullet_envs.baselines.train_tm700_multivec import evaluate, record_video
+from baselines.helpers import evaluate
 
 #################### PARAMETERS
 
-savedmodel = "tm_test_model_randomblocks.pkl"
-env = tm700GymEnv2(renders=False, isDiscrete=False)
-model = DDPG.load(savedmodel, env=env)
-
-
+#savedmodel = "tm700_cam_model.pkl"
+#env = tm700DiverseObjectEnv(renders=True, isDiscrete=True)
+#model = DQN.load(savedmodel, env=env)
 
 
 ########## run simulation
@@ -35,4 +34,3 @@ def runsimulation(model, env, iterations):
 evaluate(model, 100)
 exit()
 
-record_video(env, 500,)
