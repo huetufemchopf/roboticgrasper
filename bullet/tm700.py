@@ -1,3 +1,7 @@
+#code used from the following sources: https://github.com/bulletphysics/bullet3/blob/master/examples/pybullet/examples/inverse_kinematics.py,
+# https://github.com/bulletphysics/bullet3/blob/master/examples/pybullet/gym/pybullet_envs/bullet/kuka.py
+
+
 import pybullet as p
 import time
 import pybullet_data
@@ -62,11 +66,7 @@ class tm700:
                               p.POSITION_CONTROL,
                               targetPosition=self.jointPositions[jointIndex],
                               force=self.maxForce)
-        # print(p.getJointInfo(robot, jointIndex))
-        # print(p.getLinkState(robot, jointIndex))
 
-    # self.trayUid = p.loadURDF(os.path.join(self.urdfRootPath, "tray/tray.urdf"), 0.6400, #first 3: position, last 4: quaternions
-    #                           0.0000, -0.19, 0.000000, 0.000000, 1.000000, 0.000000)
     self.endEffectorPos = [0.4317596244807792, 0.1470447615125933, 0.2876258566462587]
     self.endEffectorAngle = 0.02
 
@@ -77,8 +77,7 @@ class tm700:
       jointInfo = p.getJointInfo(self.tm700Uid, i)
       qIndex = jointInfo[3]
       if qIndex > -1:
-        #print("motorname")
-        #print(jointInfo[1])
+
         self.motorNames.append(str(jointInfo[1]))
         self.motorIndices.append(i)
         # print('motorindeces', self.motorIndices)
@@ -121,22 +120,12 @@ class tm700:
       fingerAngle = motorCommands[4]
       state = p.getLinkState(self.tm700Uid, self.tmEndEffectorIndex) # returns 1. center of mass cartesian coordinates, 2. rotation around center of mass in quaternion
       actualEndEffectorPos = state[0]
-      #print("pos[2] (getLinkState(tmEndEffectorIndex)")
-      #print(actualEndEffectorPos[2])
+
 
       self.endEffectorPos[0] = self.endEffectorPos[0] + dx
 
       self.endEffectorPos[1] =  self.endEffectorPos[1] +  dy
-      # if (self.endEffectorPos[1] < -0.17):
-      #   self.endEffectorPos[1] = -0.17
-      # if (self.endEffectorPos[1] > 0.22):
-      #   self.endEffectorPos[1] = 0.22
-      #
-      # print ("self.endEffectorPos[2]")
-      # print (self.endEffectorPos[2])
-      # print("actualEndEffectorPos[2]")
-      # print(actualEndEffectorPos[2])
-      # if (dz<0 or actualEndEffectorPos[2]<0.5):
+
       self.endEffectorPos[2] = self.endEffectorPos[2] +  dz
   #
       self.endEffectorAngle = self.endEffectorAngle + da
@@ -164,9 +153,6 @@ class tm700:
         else:
           jointPoses = p.calculateInverseKinematics(self.tm700Uid, self.tmEndEffectorIndex, pos)
 
-
-      #print("self.tmEndEffectorIndex")
-      #print(self.tmEndEffectorIndex)
       if (self.useSimulation):
         for i in range(self.tmEndEffectorIndex):
 
@@ -209,8 +195,6 @@ class tm700:
 
   def print_joint_state(self):
     pass
-    # print(p.getLinkState(self.tm700Uid, self.tmEndEffectorIndex))
-    # print(p.getJointInfo(self.tm700Uid, 7))
 
   def grasping(self):
 

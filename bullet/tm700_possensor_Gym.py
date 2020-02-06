@@ -1,4 +1,4 @@
-# Code base from pybullet examples https://github.com/bulletphysics/bullet3/tree/master/examples/pybullet/gym/pybullet_envs
+# Code base from pybullet examples https://github.com/bulletphysics/bullet3/blob/master/examples/pybullet/gym/pybullet_envs/bullet/ kuka_diverse_object_gym_env.py
 
 import os, inspect
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -20,11 +20,11 @@ largeValObservation = 100
 
 RENDER_HEIGHT = 720
 RENDER_WIDTH = 960
-maxSteps = 600
+maxSteps = 550
 Dv = 0.004
 
 
-class tm700GymEnv2(gym.Env):
+class tm700_possensor_gym(gym.Env):
   metadata = {'render.modes': ['human', 'rgb_array'], 'video.frames_per_second': 50}
 
   def __init__(self,
@@ -111,7 +111,10 @@ class tm700GymEnv2(gym.Env):
   def getExtendedObservation(self):
     self._observation = self._tm700.getObservation()
     gripperState = p.getLinkState(self._tm700.tm700Uid, self._tm700.tmFingerIndexL)
+    gripperStateR = p.getLinkState(self._tm700.tm700Uid, self._tm700.tmFingerIndexR)
+
     gripperPos = gripperState[0]
+    print(gripperPos)
     gripperOrn = gripperState[1]
     blockPos, blockOrn = p.getBasePositionAndOrientation(self.blockUid)
 
@@ -122,23 +125,13 @@ class tm700GymEnv2(gym.Env):
     dir2 = [gripperMat[2], gripperMat[5], gripperMat[8]]
 
     gripperEul = p.getEulerFromQuaternion(gripperOrn)
-    #print("gripperEul")
-    #print(gripperEul)
+
     blockPosInGripper, blockOrnInGripper = p.multiplyTransforms(invGripperPos, invGripperOrn,
                                                                 blockPos, blockOrn)
     projectedBlockPos2D = [blockPosInGripper[0], blockPosInGripper[1]]
     blockEulerInGripper = p.getEulerFromQuaternion(blockOrnInGripper)
-    #print("projectedBlockPos2D")
-    #print(projectedBlockPos2D)
-    #print("blockEulerInGripper")
-    #print(blockEulerInGripper)
-
     #we return the relative x,y position and euler angle of block in gripper space
     blockInGripperPosXYEulZ = [blockPosInGripper[0], blockPosInGripper[1], blockEulerInGripper[2]]
-
-    #p.addUserDebugLine(gripperPos,[gripperPos[0]+dir0[0],gripperPos[1]+dir0[1],gripperPos[2]+dir0[2]],[1,0,0],lifeTime=1)
-    #p.addUserDebugLine(gripperPos,[gripperPos[0]+dir1[0],gripperPos[1]+dir1[1],gripperPos[2]+dir1[2]],[0,1,0],lifeTime=1)
-    #p.addUserDebugLine(gripperPos,[gripperPos[0]+dir2[0],gripperPos[1]+dir2[1],gripperPos[2]+dir2[2]],[0,0,1],lifeTime=1)
 
     self._observation.extend(list(blockInGripperPosXYEulZ))
     return self._observation
@@ -314,7 +307,7 @@ if __name__ == '__main__':
 # datapath = pybullet_data.getDataPath()
   p.connect(p.GUI, options="--opencl2")
   #p.setAdditionalSearchPath(datapath)
-  test =tm700GymEnv2()
+  test =tm700_possensor_gym()
   for i in range(10000):
     test.step2([0.55, 0.2, 0.05,0,0])
     p.stepSimulation()

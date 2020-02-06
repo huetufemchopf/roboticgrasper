@@ -1,4 +1,4 @@
-# Code base from pybullet examples https://github.com/bulletphysics/bullet3/tree/master/examples/pybullet/gym/pybullet_envs
+# Code base from pybullet examples https://github.com/bulletphysics/bullet3/blob/master/examples/pybullet/gym/pybullet_envs/bullet/ kuka_diverse_object_gym_env.py
 
 
 import random
@@ -14,14 +14,12 @@ import glob
 from pkg_resources import parse_version
 import gym
 from bullet.tm700 import tm700
-from bullet.tm700GymEnv import tm700GymEnv2
+from bullet.tm700_possensor_Gym import tm700_possensor_gym
 
 
-class tm700DiverseObjectEnv(tm700GymEnv2):
+class tm700_rgb_gym(tm700_possensor_gym):
   """Class for tm700 environment with diverse objects.
 
-  In each episode some objects are chosen from a set of 1000 diverse objects.
-  These 1000 objects are split 90/10 into a train and test set.
   """
 
   def __init__(self,
@@ -209,9 +207,7 @@ class tm700DiverseObjectEnv(tm700GymEnv2):
     np_img_arr = np.reshape(rgb, (self._height, self._width, 4))
     np_img_arr = np_img_arr.astype(np.float64)
 
-    test = np.concatenate([np_img_arr[:, :, 1:3], segmentation], axis=-1)
-
-    return test
+    return np_img_arr[:, :, :3]
 
   def _get_observation(self):
     """Return the observation as an image.
@@ -431,6 +427,6 @@ if __name__ == '__main__':
 
   p.connect(p.GUI)
   #p.setAdditionalSearchPath(datapath)
-  test =tm700DiverseObjectEnv()
+  test =tm700_rgbd_gym()
   test.step([0, 0, 0, 0, 0, -0.25, 0.25])
   time.sleep(50)

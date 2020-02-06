@@ -4,16 +4,22 @@ This is a short research project conducted in cooperation with the MiRA Lab at N
 
 ![Alt The robot model](./robotmodel.png)
 
+![Alt The real robot](./IMG_0831.jpg)
+
+![Alt The trained grasper](./DDPG_possensor_06-021.gif)
+
 The code for the controller and the Gym environments is based on the example code provided by Bullet3 for the Kuka Arm (Links can be found in the comments). 
 
-In order to reproduce the code, please follow these instructions: 
+In order to reproduce the code, please install the following packages, ideally in a separate virtual environment. 
 
 1. Install Pybullet via 
-'''
-pip install pybullet
-'''
 
-2. Install stable-baselines (described here: https://stable-baselines.readthedocs.io/en/master/guide/install.html)
+```
+pip install pybullet
+
+```
+
+2. Install stable-baselines (described here: https://stable-baselines.readthedocs.io/en/master/guide/install.html) Make sure you install it alongside tensorflow 1.x
 
 
 3. Clone this reppository

@@ -1,13 +1,12 @@
-
-#add parent dir to find package. Only needed for source code build, pip install doesn't need it.
+# code used from stable baselines tutorial: https://colab.research.google.com/github/araffin/rl-tutorial-jnrr19/blob/master/2_gym_wrappers_saving_loading.ipynb#scrollTo=vBNFnN4Gd32g
 import os, inspect
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(os.path.dirname(currentdir))
 os.sys.path.insert(0, parentdir)
 import parser
 import gym
-from bullet.tm700_diverse_object_gym_env import tm700DiverseObjectEnv
-from bullet.tm700GymEnv import tm700GymEnv2
+from bullet.tm700_rgbd_Gym import tm700_rgbd_gym
+from bullet.tm700_possensor_Gym import tm700_possensor_gym
 from pybullet_envs.bullet.kukaGymEnv import KukaGymEnv
 from stable_baselines import deepq
 from stable_baselines import DQN, PPO2, DDPG, HER
@@ -20,8 +19,25 @@ from stable_baselines.common.vec_env import DummyVecEnv
 # from stable_baselines_test.common.policies import MlpPolicy
 import numpy as np
 from stable_baselines.common.vec_env import VecVideoRecorder
+import imageio
 
+import os
 
+import numpy as np
+
+def runsimulation(model, env, iterations):
+    obs = env.reset()
+    time_step_counter = 0
+    iterations = iterations
+    while time_step_counter < iterations:
+        action, _ = model.predict(obs)
+        obs, rewards, dones, _ = env.step(action)
+        # Assumption: eval conducted on single env only!
+        time_step_counter +=1
+
+        # time.sleep(0.1)
+        if dones:
+            obs = env.reset()
 
 def evaluate(model, num_episodes=100):
     """
@@ -56,6 +72,18 @@ def evaluate(model, num_episodes=100):
 
     return mean_episode_reward
 
+def record_gif(model, env, name):
+    images = []
+    obs = model.env.reset()
+    img = model.env.render(mode='rgb_array')
+    for i in range(500):
+        images.append(img)
+        action, _ = model.predict(obs)
+        obs, _, _, _ = model.env.step(action)
+        img = model.env.render(mode='rgb_array')
+
+    imageio.mimsave(name, [np.array(img) for i, img in enumerate(images) if i % 2 == 0], fps=29)
+
 
 def record_video(env_id, model, video_length=500, prefix='', video_folder='videos/'):
   """
@@ -81,9 +109,36 @@ def record_video(env_id, model, video_length=500, prefix='', video_folder='video
 
 def savemodel(model, MODEL, ENVIRONMENT, DATE):
 
-    model.save("trainedmodel_%s_%s_%s.pkl" % MODEL, ENVIRONMENT, DATE)
 
-    pass
+    name = "trainedmodel_%s_%s_%s.pkl" % (MODEL, ENVIRONMENT, DATE)
+    print('save model as:', name)
+
+    model.save(name)
+
+
+class tm700Wrapper(gym.Wrapper):
+    """
+    :param env: (gym.Env) Gym environment that will be wrapped
+    """
+
+    def __init__(self, env):
+        # Call the parent constructor, so we can access self.env later
+        super(tm700Wrapper, self).__init__(env)
+
+    def reset(self):
+        """
+        Reset the environment
+        """
+        obs = self.env.reset()
+        return obs
+
+    def step(self, action):
+        """
+        :param action: ([float] or int) Action taken by the agent
+        :return: (np.ndarray, float, bool, dict) observation, reward, is the episode over?, additional informations
+        """
+        obs, reward, done, info = self.env.step(action)
+        return obs, reward, done, info
 
 if __name__ == '__main__':
 
@@ -116,7 +171,7 @@ if __name__ == '__main__':
 
     ############## load environment
 
-    env = tm700GymEnv2(renders=False, isDiscrete=True)
+    env = tm700_possensor_gym(renders=False, isDiscrete=True)
     # env = gym.make('CartPole-v1')
     # vectorized environments allow to easily multiprocess training
     # we demonstrate its usefulness in the next examples
