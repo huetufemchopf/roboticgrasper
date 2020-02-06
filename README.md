@@ -4,12 +4,14 @@ This is a short research project conducted in cooperation with the MiRA Lab at N
 
 The Simulation            |  The Real Robot
 :-------------------------:|:-------------------------:
-![Alt The robot model](./robotmodel.png =250x)  |  ![Alt The real robot](./IMG_0831.jpg =250x)
+<img src="./robotmodel.png" alt="The robot model" width="200"/>  | <img src="./IMG_0831.jpg" alt="The real robot" width="200"/> 
 
 
 ## Using the code
 
-![Alt The trained grasper](./DDPG_possensor_06-021.gif =250x)
+
+<img src="./DDPG_possensor_06-021.gif" alt="The trained grasper" width="200"/> 
+
 
 The code for the controller and the Gym environments is based on the example code provided by Bullet3 for the Kuka Arm (Links can be found in the comments). 
 
