@@ -38,14 +38,9 @@ In order to see an example for successful grasping, please run the following cod
 4. Run the following command 
 
 ```
-sh....
-```
-
-5. To train the robot to grasp, please run the following code:
-
-```
 bash replay.sh
 ```
+
 
 ---
 
