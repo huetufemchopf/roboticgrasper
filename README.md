@@ -39,7 +39,7 @@ sh....
 5. To train the robot to grasp, please run the following code:
 
 ```
-sh....
+bash replay.sh
 ```
 
 ---
