@@ -51,7 +51,7 @@ class tm700:
 
   def reset(self):
 
-    robot = p.loadURDF("../Gazebo_arm/urdf/tm700_robot_clean.urdf")
+    robot = p.loadURDF("./Gazebo_arm/urdf/tm700_robot_clean.urdf") #add two dots to start it from pycharm. i have no idea why. TODO:
     self.tm700Uid = robot
     p.resetBasePositionAndOrientation(self.tm700Uid, [0.0, 0.0, -0.0], # position of robot, GREEN IS Y AXIS
                                       [0.000000, 0.000000, 1.000000, 0.000000]) # direction of robot

@@ -1,4 +1,8 @@
 # Code base from pybullet examples https://github.com/bulletphysics/bullet3/blob/master/examples/pybullet/gym/pybullet_envs/bullet/ kuka_diverse_object_gym_env.py
+import os, inspect
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(os.path.dirname(currentdir))
+os.sys.path.insert(0, parentdir)
 
 
 import random
@@ -8,14 +12,11 @@ import time
 import pybullet as p
 import numpy as np
 import pybullet_data
-import pdb
-import distutils.dir_util
 import glob
 from pkg_resources import parse_version
 import gym
 from bullet.tm700 import tm700
-from bullet.tm700_possensor_Gym import tm700_possensor_gym
-
+from unused_code.tm700_possensorbothgrippers_Gym import tm700_possensor_gym
 
 class tm700_rgbd_gym(tm700_possensor_gym):
   """Class for tm700 environment with diverse objects.
@@ -176,40 +177,44 @@ class tm700_rgbd_gym(tm700_possensor_gym):
         p.stepSimulation()
     return objectUids
 
-  def _get_onrobot_observation(self):
-    """Return the observation as an image.
-
-
-    """
-    camerapos = p.getLinkState(self._tm700.tm700Uid, self._tm700.tmEndEffectorIndex+2)
-    blockPos, blockOrn = p.getBasePositionAndOrientation(self._objectUids[0])
-    camerapos = camerapos[0]
-    print(camerapos)
-    distance = 1# camerapos[2]
-    pitch = -90 #-60 + self._cameraRandom * np.random.uniform(-3, 3) #original -56
-    yaw =0# 245 + self._cameraRandom * np.random.uniform(-3, 3)
-    roll = 0
-    # self._view_matrix = p.computeViewMatrixFromYawPitchRoll(camerapos, distance, yaw, pitch, roll, 2)
-    self._view_matrix = p.computeViewMatrix(
-      cameraEyePosition=camerapos,
-      cameraTargetPosition=blockPos,
-      cameraUpVector=[0,0, 1])
-    img_arr = p.getCameraImage(width=self._width,
-                               height=self._height,
-                               viewMatrix=self._view_matrix,
-                               projectionMatrix=self._proj_matrix)
-    rgb = img_arr[2]
-    depth = img_arr[3]
-    segmentation = img_arr[4]
-    depth = np.reshape(depth, (self._height, self._width,1) )
-    segmentation = np.reshape(segmentation, (self._height, self._width,1) )
-
-    np_img_arr = np.reshape(rgb, (self._height, self._width, 4))
-    np_img_arr = np_img_arr.astype(np.float64)
-
-    test = np.concatenate([np_img_arr[:, :, 1:3], depth], axis=-1)
-
-    return test
+  # def _get_onrobot_observation(self):
+  #   """Return the observation as an image.
+  #
+  #
+  #   """
+  #   camerapos = p.getLinkState(self._tm700.tm700Uid, self._tm700.tmEndEffectorIndex+2)
+  #   blockPos, blockOrn = p.getBasePositionAndOrientation(self._objectUids[0])
+  #   camerapos = camerapos[0]
+  #   print(camerapos)
+  #   distance = 1# camerapos[2]
+  #   pitch = -90 #-60 + self._cameraRandom * np.random.uniform(-3, 3) #original -56
+  #   yaw =0# 245 + self._cameraRandom * np.random.uniform(-3, 3)
+  #   roll = 0
+  #   # self._view_matrix = p.computeViewMatrixFromYawPitchRoll(camerapos, distance, yaw, pitch, roll, 2)
+  #   self._view_matrix = p.computeViewMatrix(
+  #     cameraEyePosition=camerapos,
+  #     cameraTargetPosition=blockPos,
+  #     cameraUpVector=[0,0, 1])
+  #   img_arr = p.getCameraImage(width=self._width,
+  #                              height=self._height,
+  #                              viewMatrix=self._view_matrix,
+  #                              projectionMatrix=self._proj_matrix)
+  #   rgb = img_arr[2]
+  #   depth = img_arr[3]
+  #   min = 0.97
+  #   max=1.0
+  #   print(depth)
+  #   depthnormalized = (float(depth) - min)/(max-min)
+  #   segmentation = img_arr[4]
+  #   depth = np.reshape(depth, (self._height, self._width,1) )
+  #   segmentation = np.reshape(segmentation, (self._height, self._width,1) )
+  #
+  #   np_img_arr = np.reshape(rgb, (self._height, self._width, 4))
+  #   np_img_arr = np_img_arr.astype(np.float64)
+  #
+  #   test = np.concatenate([np_img_arr[:, :, 1:3], depth], axis=-1)
+  #
+  #   return test
 
   def _get_observation(self):
     """Return the observation as an image.
@@ -223,6 +228,9 @@ class tm700_rgbd_gym(tm700_possensor_gym):
                                projectionMatrix=self._proj_matrix)
     rgb = img_arr[2]
     depth = img_arr[3]
+    min = 0.97
+    max=1.0
+    # depthnormalized = [(i - min)/(max-min) for i in depth]
     segmentation = img_arr[4]
     depth = np.reshape(depth, (self._height, self._width,1) )
     segmentation = np.reshape(segmentation, (self._height, self._width,1) )
@@ -230,7 +238,7 @@ class tm700_rgbd_gym(tm700_possensor_gym):
     np_img_arr = np.reshape(rgb, (self._height, self._width, 4))
     np_img_arr = np_img_arr.astype(np.float64)
 
-    test = np.concatenate([np_img_arr[:, :, 1:3], segmentation], axis=-1)
+    test = np.concatenate([np_img_arr[:, :, 0:2], segmentation], axis=-1)
 
     return test
 
@@ -352,7 +360,7 @@ class tm700_rgbd_gym(tm700_possensor_gym):
     if (numPt > 0):
       #print("reward:")
       # reward = -1./((1.-closestPoints1[0][8] * 100 + 1. -closestPoints2[0][8] * 100 )/2)
-      reward = -((closestPoints1[0][8]) + (closestPoints2[0][8]) )*(1/2)*(1/0.17849278457978357)
+      reward = -((closestPoints1[0][8])**2 + (closestPoints2[0][8])**2 )*(1/2)*(1/0.17849278457978357)
       # reward = 1/((abs(closestPoints1[0][8])   + abs(closestPoints2[0][8])*10 )**2 / 2)
       # reward = 1/closestPoints1[0][8]+1/closestPoints2[0][8]
     if (blockPos[2] > 0.2):

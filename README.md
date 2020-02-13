@@ -35,11 +35,22 @@ git clone https://github.com/huetufemchopf/roboticgrasper.git
 
 In order to see an example for successful grasping, please run the following code:
 
-4. Run the following command 
+4. To train a model, try for example this:
 
 ```
-bash replay.sh
+
+python baselines/train_tm700_cam_grasping.py --gym_env 'rgbd' --algorithm 'DQN' --discrete True --lr 0.0001
+
 ```
+
+4. Run the following command to play a pretrained model 
+
+```
+python baselines/replay_grasping_possensor.py  --gym_env 'rgbd'
+
+```
+
+
 
 
 ---

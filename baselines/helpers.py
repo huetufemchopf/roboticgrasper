@@ -70,7 +70,7 @@ def evaluate(model, num_episodes=100):
     successratio = successratio/num_episodes
     print("Mean reward:", mean_episode_reward, "Num episodes:", num_episodes, "Success ratio:", successratio)
 
-    return mean_episode_reward
+    return mean_episode_reward, successratio
 
 def record_gif(model, env, name):
     images = []

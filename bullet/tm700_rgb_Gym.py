@@ -228,9 +228,8 @@ class tm700_rgb_gym(tm700_possensor_gym):
     np_img_arr = np.reshape(rgb, (self._height, self._width, 4))
     np_img_arr = np_img_arr.astype(np.float64)
 
-    test = np.concatenate([np_img_arr[:, :, 1:3], segmentation], axis=-1)
 
-    return test
+    return np_img_arr[:, :, :3]
 
 
   def step(self, action):

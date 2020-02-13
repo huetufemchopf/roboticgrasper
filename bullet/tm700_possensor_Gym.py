@@ -11,16 +11,15 @@ from gym.utils import seeding
 import numpy as np
 import time
 import pybullet as p
-import tm700
 import random
 import pybullet_data
 from pkg_resources import parse_version
-
+import tm700
 largeValObservation = 100
 
 RENDER_HEIGHT = 720
 RENDER_WIDTH = 960
-maxSteps = 550
+maxSteps = 700
 Dv = 0.004
 
 
@@ -114,27 +113,33 @@ class tm700_possensor_gym(gym.Env):
     gripperStateR = p.getLinkState(self._tm700.tm700Uid, self._tm700.tmFingerIndexR)
 
     gripperPos = gripperState[0]
-    print(gripperPos)
     gripperOrn = gripperState[1]
+    gripperPosR = gripperStateR[0]
+    gripperOrnR = gripperStateR[1]
     blockPos, blockOrn = p.getBasePositionAndOrientation(self.blockUid)
 
     invGripperPos, invGripperOrn = p.invertTransform(gripperPos, gripperOrn)
-    gripperMat = p.getMatrixFromQuaternion(gripperOrn)
-    dir0 = [gripperMat[0], gripperMat[3], gripperMat[6]]
-    dir1 = [gripperMat[1], gripperMat[4], gripperMat[7]]
-    dir2 = [gripperMat[2], gripperMat[5], gripperMat[8]]
+    invGripperPosR, invGripperOrnR = p.invertTransform(gripperPosR, gripperOrnR)
 
-    gripperEul = p.getEulerFromQuaternion(gripperOrn)
+    gripperMat = p.getMatrixFromQuaternion(gripperOrn)
+    gripperMatR = p.getMatrixFromQuaternion(gripperOrnR)
 
     blockPosInGripper, blockOrnInGripper = p.multiplyTransforms(invGripperPos, invGripperOrn,
                                                                 blockPos, blockOrn)
-    projectedBlockPos2D = [blockPosInGripper[0], blockPosInGripper[1]]
+    blockPosInGripperR, blockOrnInGripperR = p.multiplyTransforms(invGripperPosR, invGripperOrnR,
+                                                                blockPos, blockOrn)
     blockEulerInGripper = p.getEulerFromQuaternion(blockOrnInGripper)
+    blockEulerInGripperR = p.getEulerFromQuaternion(blockOrnInGripperR)
+
     #we return the relative x,y position and euler angle of block in gripper space
     blockInGripperPosXYEulZ = [blockPosInGripper[0], blockPosInGripper[1], blockEulerInGripper[2]]
+    blockInGripperPosXYEulZR = [blockPosInGripperR[0], blockPosInGripperR[1], blockEulerInGripper[2]]
 
     self._observation.extend(list(blockInGripperPosXYEulZ))
+    self._observation.extend(list(blockInGripperPosXYEulZR))
+
     return self._observation
+
 
   def step(self, action):
     if (self._isDiscrete):
@@ -279,7 +284,7 @@ class tm700_possensor_gym(gym.Env):
     if (numPt > 0):
       #print("reward:")
       # reward = -1./((1.-closestPoints1[0][8] * 100 + 1. -closestPoints2[0][8] * 100 )/2)
-      reward = -((closestPoints1[0][8]) + (closestPoints2[0][8]) )*(1/2)*(1/0.17849278457978357)
+      reward = -((closestPoints1[0][8])**2 + (closestPoints2[0][8])**2 )*(1/0.17849278457978357)
       # reward = 1/((abs(closestPoints1[0][8])   + abs(closestPoints2[0][8])*10 )**2 / 2)
       # reward = 1/closestPoints1[0][8]+1/closestPoints2[0][8]
     if (blockPos[2] > 0.2):
@@ -309,7 +314,7 @@ if __name__ == '__main__':
   #p.setAdditionalSearchPath(datapath)
   test =tm700_possensor_gym()
   for i in range(10000):
-    test.step2([0.55, 0.2, 0.05,0,0])
+    # test.step2([0.55, 0.2, 0.05,0,0])
     p.stepSimulation()
     # tm700test.print_joint_state()
     time.sleep(1. / 240.0)
