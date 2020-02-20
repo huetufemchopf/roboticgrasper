@@ -176,44 +176,44 @@ class tm700_rgbd_gym(tm700_possensor_gym):
         p.stepSimulation()
     return objectUids
 
-  # def _get_onrobot_observation(self):
-  #   """Return the observation as an image.
-  #
-  #
-  #   """
-  #   camerapos = p.getLinkState(self._tm700.tm700Uid, self._tm700.tmEndEffectorIndex+2)
-  #   blockPos, blockOrn = p.getBasePositionAndOrientation(self._objectUids[0])
-  #   camerapos = camerapos[0]
-  #   print(camerapos)
-  #   distance = 1# camerapos[2]
-  #   pitch = -90 #-60 + self._cameraRandom * np.random.uniform(-3, 3) #original -56
-  #   yaw =0# 245 + self._cameraRandom * np.random.uniform(-3, 3)
-  #   roll = 0
-  #   # self._view_matrix = p.computeViewMatrixFromYawPitchRoll(camerapos, distance, yaw, pitch, roll, 2)
-  #   self._view_matrix = p.computeViewMatrix(
-  #     cameraEyePosition=camerapos,
-  #     cameraTargetPosition=blockPos,
-  #     cameraUpVector=[0,0, 1])
-  #   img_arr = p.getCameraImage(width=self._width,
-  #                              height=self._height,
-  #                              viewMatrix=self._view_matrix,
-  #                              projectionMatrix=self._proj_matrix)
-  #   rgb = img_arr[2]
-  #   depth = img_arr[3]
-  #   min = 0.97
-  #   max=1.0
-  #   print(depth)
-  #   depthnormalized = (float(depth) - min)/(max-min)
-  #   segmentation = img_arr[4]
-  #   depth = np.reshape(depth, (self._height, self._width,1) )
-  #   segmentation = np.reshape(segmentation, (self._height, self._width,1) )
-  #
-  #   np_img_arr = np.reshape(rgb, (self._height, self._width, 4))
-  #   np_img_arr = np_img_arr.astype(np.float64)
-  #
-  #   test = np.concatenate([np_img_arr[:, :, 1:3], depth], axis=-1)
-  #
-  #   return test
+  def _get_onrobot_observation(self):
+    """Return the observation as an image.
+
+
+    """
+    camerapos = p.getLinkState(self._tm700.tm700Uid, self._tm700.tmEndEffectorIndex+2)
+    blockPos, blockOrn = p.getBasePositionAndOrientation(self._objectUids[0])
+    camerapos = camerapos[0]
+    print(camerapos)
+    distance = 1# camerapos[2]
+    pitch = -90 #-60 + self._cameraRandom * np.random.uniform(-3, 3) #original -56
+    yaw =0# 245 + self._cameraRandom * np.random.uniform(-3, 3)
+    roll = 0
+    # self._view_matrix = p.computeViewMatrixFromYawPitchRoll(camerapos, distance, yaw, pitch, roll, 2)
+    self._view_matrix = p.computeViewMatrix(
+      cameraEyePosition=camerapos,
+      cameraTargetPosition=blockPos,
+      cameraUpVector=[0,0, 1])
+    img_arr = p.getCameraImage(width=self._width,
+                               height=self._height,
+                               viewMatrix=self._view_matrix,
+                               projectionMatrix=self._proj_matrix)
+    rgb = img_arr[2]
+    depth = img_arr[3]
+    min = 0.97
+    max=1.0
+    print(depth)
+    depthnormalized = (float(depth) - min)/(max-min)
+    segmentation = img_arr[4]
+    depth = np.reshape(depth, (self._height, self._width,1) )
+    segmentation = np.reshape(segmentation, (self._height, self._width,1) )
+
+    np_img_arr = np.reshape(rgb, (self._height, self._width, 4))
+    np_img_arr = np_img_arr.astype(np.float64)
+
+    test = np.concatenate([np_img_arr[:, :, 1:3], depth], axis=-1)
+
+    return test
 
   def _get_observation(self):
     """Return the observation as an image.
@@ -327,7 +327,7 @@ class tm700_rgbd_gym(tm700_possensor_gym):
         if finger_angle < 0:
           finger_angle = 0
       self._attempted_grasp = True
-    observation = self._get_observation()
+    observation = self._get_onrobot_observation()
     done = self._termination()
     reward = self._reward()
     debug = {'grasp_success': self._graspSuccess}
