@@ -27,7 +27,7 @@ pip install pybullet
 2. Install stable-baselines (described here: https://stable-baselines.readthedocs.io/en/master/guide/install.html) Make sure you install it alongside tensorflow 1.x
 
 
-3. Clone this reppository
+3. Clone this repository
 
 ```
 git clone https://github.com/huetufemchopf/roboticgrasper.git
